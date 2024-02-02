@@ -14,7 +14,7 @@ var app = express();
 
 
 //var https = require('https') ;
-app.use(express.static('index.html'));
+app.use(express.static('.'));
 
 console.log("working fine")
 
