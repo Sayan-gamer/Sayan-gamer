@@ -2,8 +2,8 @@ window.addEventListener('load', function () {
 	//canvus setup
 	const canvas = document.getElementById('canvas');
 	const ctx = canvas.getContext('2d');
-	canvas.height = 500;
-	canvas.width = 1000;
+	canvas.height = 500  ;
+	canvas.width = window. innerWidth-150 ;
 	let canvas_x = 0 ;
 	let canvas_y = 0 ;
 	
@@ -148,8 +148,8 @@ window.addEventListener('load', function () {
 			this.width = 30 ;
 			this.height = 10 ;
 			this.image = document.getElementById('BlueFire') ;
-			this.imageFire_w = 1000 ;
-			this.imageFire_h = 350 ;
+			this.imageFire_w = 300 ;
+			this.imageFire_h = 250 ;
 			}else{
 			this.width = 30 ;
 			this.height = 20 ;
