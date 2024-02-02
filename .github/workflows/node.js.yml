@@ -32,4 +32,3 @@ jobs:
     - run: ps au
     - run: ifconfig
     - run: pwd
-    - run: node ap01.js
