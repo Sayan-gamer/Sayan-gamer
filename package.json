@@ -1,0 +1,21 @@
+{
+  "name": "node_server",
+  "version": "1.0.0",
+  "description": "linux_server(desktop)",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Sayan Samanta",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "fs": "0.0.1-security",
+    "http-server": "^14.1.0",
+    "multer": "^1.4.4",
+    "online": "^0.0.1",
+    "redis": "^4.0.6",
+    "socket.io": "^4.4.1",
+    "socket.io-stream": "^0.9.1"
+  }
+}
