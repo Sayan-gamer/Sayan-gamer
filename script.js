@@ -143,18 +143,26 @@ window.addEventListener('load', function () {
 	}
 
 	class Projectile {
-		constructor(game,x,y,type){
+		constructor(game,x,y,type,type2){
+			if(type2===1){
+			this.width = 30 ;
+			this.height = 10 ;
+			this.image = document.getElementById('BlueFire') ;
+			this.imageFire_w = 1000 ;
+			this.imageFire_h = 350 ;
+			}else{
 			this.width = 30 ;
 			this.height = 20 ;
+			this.image = document.getElementById('fire') ;
+			this.imageFire_w = 300 ;
+			this.imageFire_h = 250 ;
+			}
 			this.x = x ;
 			this.y = y-this.height/2 ;
 			this.speedx = 4 ;
 			this.speedy = 6 ;
-			this.type = type ; 
+			this.type = type ;
 			this.markedForDeletion = false ;
-			this.image = document.getElementById('fire') ;
-			this.imageFire_w = 300 ;
-			this.imageFire_h = 250 ;
 			this.frameX_f = 0 ;
 			this.frameX_max_f = 8 ;
 		}
@@ -217,11 +225,14 @@ window.addEventListener('load', function () {
 		}
 
 		update() {
+
 			if (this.game.keys.includes('ArrowUp') && this.y>this.miny) this.speedY = -this.maxSpeed ;
 			else if (this.game.keys.includes('ArrowDown') && this.y<this.maxy) this.speedY = this.maxSpeed ;
 			else this.speedY = 0  ;
 
+			if(!this.game.gameOver){
 			this.y += this.speedY;
+			}
 
 			this.projectiles.forEach(projectile => {
 				projectile.update() ;
@@ -255,19 +266,26 @@ window.addEventListener('load', function () {
 			if(this.game.debug){
 			context.strokeRect(this.x, this.y, this.width, this.height);
 			}
-			context.drawImage(this.image,Math.floor(this.FrameX_p)*this.image_w,0,this.image_w,this.image_h,this.x,this.y,this.width,this.height) ;
+
+			if(!this.game.gameOver){
+				context.drawImage(this.image,Math.floor(this.FrameX_p)*this.image_w,0,this.image_w,this.image_h,this.x,this.y,this.width,this.height) ;
+			}
 			this.projectiles.forEach(projectile => {
 				projectile.draw(context) ;
 			}) ;
 		}
 
 		shootTop(){
-			if(this.game.ammo > 0){
-			this.projectiles.push(new Projectile(this.game,this.x+this.width,this.y+this.height*this.fire_height,0)) ;
-			this.game.ammo-- ;	
+			if(this.game.ammo > 0 && !this.game.gameOver){
+			
 			if(this.powerUp){
 				this.shoot_2_extra() ;
-			}
+				this.projectiles.push(new Projectile(this.game,this.x+this.width,this.y+this.height*this.fire_height,0,1)) ;
+				this.game.ammo-- ;	
+		}else{
+			this.projectiles.push(new Projectile(this.game,this.x+this.width,this.y+this.height*this.fire_height,0,0)) ;
+			this.game.ammo-- ;	
+		}
 		}
 			//console.log(this.projectiles)
 		}
@@ -281,8 +299,8 @@ window.addEventListener('load', function () {
 		}
 
 		shoot_2_extra(){
-				this.projectiles.push(new Projectile(this.game,this.x+this.width,this.y+this.height*this.fire_height,3)) ;
-				this.projectiles.push(new Projectile(this.game,this.x+this.width,this.y+this.height*this.fire_height,2)) ;
+				this.projectiles.push(new Projectile(this.game,this.x+this.width,this.y+this.height*this.fire_height,3,1)) ;
+				this.projectiles.push(new Projectile(this.game,this.x+this.width,this.y+this.height*this.fire_height,2,1)) ;
 		}
 
 		enterPowerUP(){
@@ -330,6 +348,9 @@ window.addEventListener('load', function () {
 				context.fillStyle = 'yellow' ;
 				context.font = '20px Helvetica' ;
 				context.fillText(this.lives,this.x,this.y+20) ;
+			}else{
+				context.fillStyle = 'red' ;
+				context.fillRect(this.x,this.y,this.lives/this.maxlives*this.width,this.height*0.04) ;
 			}
 		}
 
@@ -340,26 +361,28 @@ window.addEventListener('load', function () {
 			this.y = Math.random() *(this.game.height*.9-this.height-70)+70 ;
 			this.image = document.getElementById("alien") ;
 			this.frameY = Math.floor(Math.random()*3) ;  
-			this.lives =  10 ;
-			this.score = this.lives ;
+			this.maxlives =  10 ;
+			this.lives =  this.maxlives ;
+			this.score = this.maxlives ;
 			this.type = "normal" ;  
 			this.maxFrame_e = 8 ;
 			this.image_w = 650 ;
 			this.image_h = 300 ;	
-			this.width = this.image_w*.25 ;
-			this.height = this.image_h*.25 ;
+			this.width = this.image_w*.15 ;
+			this.height = this.image_h*.15 ;
 		}
 	}
 	class enemy2 extends Enemy {//automatic class from enemy parent class
 		constructor(game){//overrite the main ;
 			super(game) ; //combine with main ;
-			this.width = 198*.7 ;
-			this.height = 200*.7 ;
+			this.width = 198*.4 ;
+			this.height = 200*.4 ;
 			this.y = Math.random() *(this.game.height*.9-this.height-70)+70 ;
 			this.image = document.getElementById("red_moon") ;
 			this.frameY = Math.floor(Math.random()*3) ;  
-			this.lives = 5;
-			this.score = this.lives ;
+			this.maxlives =  5 ;
+			this.lives =  this.maxlives ;
+			this.score = this.maxlives ;
 			this.type = "normal" ;  
 			this.maxFrame_e = 1 ;
 			this.image_w = 198 ;
@@ -369,12 +392,13 @@ window.addEventListener('load', function () {
 	class enemy3 extends Enemy {//automatic class from enemy parent class
 		constructor(game){//overrite the main ;
 			super(game) ; //combine with main ;
-			this.width = 198*.3 ;
-			this.height = 200*.3 ;
+			this.width = 198*.2 ;
+			this.height = 200*.2 ;
 			this.y = Math.random() *(this.game.height*.9-this.height-70)+70 ;
 			this.image = document.getElementById("green_moon") ;
 			this.frameY = Math.floor(Math.random()*3) ;
-			this.lives =  3 ;
+			this.maxlives =  3 ;
+			this.lives =  this.maxlives ;
 			this.score = 7 ;
 			this.type = "healer" ; 
 			this.maxFrame_e = 1 ;
@@ -430,6 +454,50 @@ window.addEventListener('load', function () {
 
 	}
 
+	class Explosion{
+		constructor(game,x,y,lh,lw){
+			this.game = game ;
+			this.x = x ;
+			this.y = y ;
+			this.frameX_ex = 0 ;
+			this.frameX_ex_max = 1 ;
+			this.spriteHeight = lh ;
+			this.timer = 0 ;
+			this.interval = 150 ;
+			this.markedForDeletion = false ;
+
+		}
+		update(){
+			if(this.timer>this.interval){
+				this.frameX_ex++ ;
+				this.timer = 0 ;
+			}else{
+				this.timer += 16 ;
+			}
+			if(this.frameX_ex >= this.frameX_ex_max){
+				 this.markedForDeletion = true;
+			}
+			// ; **/
+		}
+		draw(context){
+			context.drawImage(this.image,this.frameX_ex*0,0,
+				this.imagewidth,this.imageheight,this.x,this.y,this.width,this.height) ;
+		}
+	}
+
+	class FireBlast extends Explosion {
+		constructor(game,x,y,lh,lw){
+			super(game,x,y,lh,lw) ;
+			this.image = document.getElementById('blast') ;
+			this.imagewidth = 500 ;
+			this.imageheight = 500 ;
+			this.spriteWidth = lw ;
+			this.width = this.spriteWidth ;
+			this.height = this.spriteHeight ;
+			//this.x = x ;
+			//this.y = y ;
+		}
+	}
 	class UI {
 		constructor(game){
 			this.game = game ;
@@ -517,6 +585,7 @@ window.addEventListener('load', function () {
 			this.ui = new UI(this) ;
 			this.keys = [] ;
 			this.enemies = [] ;
+			this.explosions = [] ;
 			this.enemyTimer = 0;
 			this.EnemyInerval = 500 ;
 			this.ammo = 20 ;
@@ -528,7 +597,7 @@ window.addEventListener('load', function () {
 			this.health = 100 ;
 			this.winningScore = 1000 ;
 			this.gameTime = 0 ;
-			this.timeLimit = 50000 ;
+			this.timeLimit = 500000 ;
 			this.gamespeed = 1 ;
 			this.background = new Background(this) ;
 			this.auto_shoot = true ;
@@ -540,8 +609,11 @@ window.addEventListener('load', function () {
 
 		update(delt) {
 			if(!this.gameOver) this.gameTime += 16 ;
-			if(this.health<=0) this.gameOver = true ;
-			if(this.gameTime>this.timeLimit) this.gameOver = true ;
+			if(this.health<=0) {
+				this.gameOver = true ;
+				this.addBlastTypeEnemy(this.player) ;
+			}
+			//if(this.gameTime>this.timeLimit) this.gameOver = true ;
 			if(this.ammoTimer > this.ammoInterval){
 				if(this.ammo < this.maxAmmo){
 					this.ammo ++ ;
@@ -567,6 +639,7 @@ window.addEventListener('load', function () {
 				enemy.update() ; 
 				if (this.checkCollision(this.player,enemy)){
 					enemy.markedForDeletion = true ;
+					this.addBlastTypeEnemy(enemy) ;
 					if(enemy.type === "healer"){
 						this.player.enterPowerUP();
 						
@@ -588,8 +661,10 @@ window.addEventListener('load', function () {
 					if(this.checkCollision(enemy,projectile)){
 						enemy.lives-- ;
 						projectile.markedForDeletion = true ;
+						this.addBlastTypeProjectile(projectile) ;
 						if(enemy.lives < 1){
 							enemy.markedForDeletion = true ;
+							this.addBlastTypeEnemy(enemy) ;
 							if(!this.gameOver){
 								this.score += enemy.score ;
 							}
@@ -600,6 +675,11 @@ window.addEventListener('load', function () {
 					}
 				});
 			});
+			
+			this.explosions.forEach(explosion => explosion.update()) ;
+			this.explosions = this.explosions.filter(explosion =>
+				!explosion.markedForDeletion ) ;
+
 			this.enemies =this.enemies.filter(enemy => !enemy.markedForDeletion) ;
 			if(this.enemyTimer>this.EnemyInerval){
 				if(!this.gameOver){
@@ -618,7 +698,19 @@ window.addEventListener('load', function () {
 			this.enemies.forEach(enemy => {
 				enemy.draw(context) ; 
 			});
+			this.explosions.forEach(explosion => {
+				explosion.draw(context) ; 
+			});
 			this.ui.draw(context) ;
+		}
+		addBlastTypeEnemy(enemy){
+			this.explosions.push( new FireBlast(this,enemy.x- enemy.height*.35,enemy.y- enemy.height*.35,enemy.height*1.35,enemy.width*1.35))
+			//console.log(this.explosions) ;
+		}
+		addBlastTypeProjectile(projectile){
+			this.explosions.push( new FireBlast(this,projectile.x,projectile.y- projectile.height*.2,projectile.width,
+				projectile.width))
+			//console.log(this.explosions) ;
 		}
 		addEnemy(){
 			const randomize = Math.random() ;
