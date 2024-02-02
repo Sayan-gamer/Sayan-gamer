@@ -5,7 +5,7 @@ var express = require('express');
 //var ss = require('socket.io-stream');
 //var sio = require('socket.io');
 //var db = redis.createClient();
-var port = 1238 ;
+var port = 8080 ;
 
 //online = online(db);
 
@@ -14,7 +14,7 @@ var app = express();
 
 
 //var https = require('https') ;
-app.use(express.static('game'));
+app.use(express.static('index.html'));
 
 console.log("working fine")
 
