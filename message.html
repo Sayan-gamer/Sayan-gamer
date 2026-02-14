@@ -81,12 +81,28 @@
 
     let activeConn = null;
 
+    
+    
     // 2. Peer Event Listeners
-    peer.on('open', (id) => {
-        document.getElementById('my-id').innerText = id;
-        document.getElementById('dot').classList.add('online');
-        log("System", "Ready for global connection.");
-    });
+    const customId = Math.floor(100000 + Math.random() * 900000).toString();
+
+// 2. Initialize Peer with that ID
+// The first argument 'customId' tells the server what your ID is
+const peer = new Peer(customId, {
+    host: window.location.hostname,
+    port: window.location.port || (window.location.protocol === 'https:' ? 443 : 80),
+    path: '/peerjs/messenger', 
+    secure: window.location.protocol === 'https:'
+});
+
+let activeConn = null;
+
+peer.on('open', (id) => {
+    // This 'id' will now be your 6-digit number
+    document.getElementById('my-id').innerText = id;
+    document.getElementById('dot').classList.add('online');
+    log("System", `Ready. Your 6-digit ID is: ${id}`);
+});
 
     // Listen for incoming connection
     peer.on('connection', (conn) => {
