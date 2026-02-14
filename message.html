@@ -3,163 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global P2P Applet</title>
+    <title>Custom ID Messenger</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    
     <style>
-        * { box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background: #121212; color: #e0e0e0; margin: 0; display: flex; flex-direction: column; height: 100vh; 
+        :root { --primary: #0078d4; --dark: #121212; --card: #1e1e1e; }
+        body { font-family: sans-serif; background: var(--dark); color: white; margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        
+        /* Login Overlay */
+        #login-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--dark); display: flex; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 100;
         }
+        .login-card { background: var(--card); padding: 30px; border-radius: 12px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         
-        /* Header Section */
-        header { background: #1f1f1f; padding: 20px; border-bottom: 1px solid #333; text-align: center; }
-        .status-dot { height: 10px; width: 10px; background-color: #bbb; border-radius: 50%; display: inline-block; margin-right: 5px; }
-        .online { background-color: #4caf50; }
-        
-        /* Device Info */
-        .info-panel { background: #252525; padding: 10px; font-size: 0.85em; text-align: center; }
-        .ip-box { color: #00a2ff; font-family: monospace; font-weight: bold; font-size: 1.1em; }
-
-        /* Messaging Area */
-        #display { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; }
-        .msg { padding: 10px 14px; border-radius: 12px; max-width: 80%; word-wrap: break-word; }
+        /* Chat UI (Hidden until login) */
+        #chat-interface { display: none; flex-direction: column; height: 100vh; }
+        header { background: var(--card); padding: 15px; text-align: center; border-bottom: 1px solid #333; }
+        #display { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .msg { padding: 10px; border-radius: 8px; max-width: 80%; }
         .in { background: #333; align-self: flex-start; }
-        .out { background: #0078d4; color: white; align-self: flex-end; }
+        .out { background: var(--primary); align-self: flex-end; }
 
-        /* Input Controls */
-        .input-area { background: #1f1f1f; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .row { display: flex; gap: 10px; }
-        input { 
-            flex: 1; padding: 12px; border-radius: 6px; border: 1px solid #444; 
-            background: #2c2c2c; color: white; outline: none; 
-        }
-        button { 
-            padding: 10px 18px; border-radius: 6px; border: none; 
-            background: #0078d4; color: white; font-weight: bold; cursor: pointer; 
-        }
-        button:hover { background: #005a9e; }
+        input { padding: 12px; border-radius: 6px; border: 1px solid #444; background: #2c2c2c; color: white; margin-bottom: 10px; width: 250px; text-align: center; font-size: 1.2em; }
+        button { padding: 12px 24px; border-radius: 6px; border: none; background: var(--primary); color: white; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<header>
-    <span id="dot" class="status-dot"></span> <strong>Global Messenger</strong>
-</header>
-
-<div class="info-panel">
-    YOUR DEVICE ID: <span id="my-id" class="ip-box">WAITING...</span>
-</div>
-
-<div id="display">
-    <div class="msg in">Welcome. Enter a Peer ID below to connect across the net.</div>
-</div>
-
-<div class="input-area">
-    <div class="row">
-        <input type="text" id="targetId" placeholder="Enter Receiver's ID">
-        <button onclick="connectToPeer()">CONNECT</button>
+<div id="login-screen">
+    <div class="login-card">
+        <h2>Enter 6-Digit ID</h2>
+        <p style="color: #888;">Choose a number (100000 - 999999)</p>
+        <input type="number" id="custom-id-input" placeholder="e.g. 123456" min="100000" max="999999">
+        <br>
+        <button onclick="startApp()">START CHAT</button>
     </div>
-    <div class="row">
-        <input type="text" id="message" placeholder="Type message...">
-        <button onclick="sendMsg()">SEND</button>
+</div>
+
+<div id="chat-interface">
+    <header>
+        Your ID: <strong id="display-my-id" style="color: var(--primary);">000000</strong>
+    </header>
+    <div id="display"></div>
+    <div style="padding: 15px; background: var(--card); display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; gap: 10px;">
+            <input type="number" id="targetId" placeholder="Friend's 6-Digit ID" style="margin:0; flex:1;">
+            <button onclick="connectToPeer()">CONNECT</button>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <input type="text" id="message" placeholder="Type message..." style="margin:0; flex:1;">
+            <button onclick="sendMsg()">SEND</button>
+        </div>
     </div>
 </div>
 
 <script>
-    /** --- INBUILT SCRIPT LOGIC --- **/
-    
-    // 1. Peer Configuration
-    // If hosting on your Node.js server, it uses the current window location
-    const peer = new Peer({
-        host: window.location.hostname,
-        port: window.location.port || (window.location.protocol === 'https:' ? 443 : 80),
-        path: '/peerjs/messenger', 
-        secure: window.location.protocol === 'https:'
-    });
-
+    let peer = null;
     let activeConn = null;
 
-    
-    
-    // 2. Peer Event Listeners
-    const customId = Math.floor(100000 + Math.random() * 900000).toString();
-
-// 2. Initialize Peer with that ID
-// The first argument 'customId' tells the server what your ID is
-const peer = new Peer(customId, {
-    host: window.location.hostname,
-    port: window.location.port || (window.location.protocol === 'https:' ? 443 : 80),
-    path: '/peerjs/messenger', 
-    secure: window.location.protocol === 'https:'
-});
-
-let activeConn = null;
-
-peer.on('open', (id) => {
-    // This 'id' will now be your 6-digit number
-    document.getElementById('my-id').innerText = id;
-    document.getElementById('dot').classList.add('online');
-    log("System", `Ready. Your 6-digit ID is: ${id}`);
-});
-
-    // Listen for incoming connection
-    peer.on('connection', (conn) => {
-        activeConn = conn;
-        initConnection();
-        log("System", "Inbound connection established.");
-    });
-
-    // 3. Functions
-    function connectToPeer() {
-        const id = document.getElementById('targetId').value;
-        if (!id) return alert("Enter an ID first!");
+    function startApp() {
+        const idInput = document.getElementById('custom-id-input').value;
         
-        activeConn = peer.connect(id);
-        initConnection();
+        // Validation: Must be 6 digits
+        if (idInput.length !== 6) {
+            alert("ID must be exactly 6 digits!");
+            return;
+        }
+
+        // Initialize Peer with the Custom ID
+        peer = new Peer(idInput, {
+            host: window.location.hostname,
+            port: window.location.port || (window.location.protocol === 'https:' ? 443 : 80),
+            path: '/peerjs/messenger',
+            secure: window.location.protocol === 'https:'
+        });
+
+        peer.on('open', (id) => {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('chat-interface').style.display = 'flex';
+            document.getElementById('display-my-id').innerText = id;
+        });
+
+        peer.on('error', (err) => {
+            if (err.type === 'unavailable-id') {
+                alert("This ID is already taken by someone else on the net!");
+            } else {
+                alert("Connection Error: " + err.type);
+            }
+        });
+
+        // Listen for inbound connections
+        peer.on('connection', (conn) => {
+            activeConn = conn;
+            setupConnectionListeners();
+            addLog("System", "Friend connected to you!", "in");
+        });
     }
 
-    function initConnection() {
-        activeConn.on('open', () => {
-            log("System", "Connected to peer successfully.");
-        });
-        
-        activeConn.on('data', (data) => {
-            log("Peer", data, "in");
-        });
+    function connectToPeer() {
+        const target = document.getElementById('targetId').value;
+        if (!target) return;
+        activeConn = peer.connect(target);
+        setupConnectionListeners();
+    }
 
-        activeConn.on('close', () => {
-            log("System", "Connection lost.");
-            activeConn = null;
+    function setupConnectionListeners() {
+        activeConn.on('open', () => {
+            addLog("System", "Connection established!", "in");
+        });
+        activeConn.on('data', (data) => {
+            addLog("Peer", data, "in");
         });
     }
 
     function sendMsg() {
-        const input = document.getElementById('message');
+        const msgInput = document.getElementById('message');
         if (activeConn && activeConn.open) {
-            activeConn.send(input.value);
-            log("You", input.value, "out");
-            input.value = "";
-        } else {
-            alert("No active connection. Click CONNECT first.");
+            activeConn.send(msgInput.value);
+            addLog("You", msgInput.value, "out");
+            msgInput.value = "";
         }
     }
 
-    function log(user, text, type = "in") {
+    function addLog(user, text, type) {
         const display = document.getElementById('display');
         const div = document.createElement('div');
         div.className = `msg ${type}`;
-        div.innerHTML = `<small style="display:block; font-size:0.7em; opacity:0.6">${user}</small>${text}`;
+        div.innerHTML = `<small style="display:block;opacity:0.6">${user}</small>${text}`;
         display.appendChild(div);
         display.scrollTop = display.scrollHeight;
     }
-
-    // Handle Enter key
-    document.getElementById('message').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') sendMsg();
-    });
 </script>
-
 </body>
 </html>
