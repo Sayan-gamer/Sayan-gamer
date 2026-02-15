@@ -16,6 +16,7 @@
     "online": "^0.0.1",
     "redis": "^4.0.6",
     "socket.io": "^4.4.1",
-    "socket.io-stream": "^0.9.1"
+    "socket.io-stream": "^0.9.1",
+    "@vercel/blob": "^2.2.0",
   }
 }
