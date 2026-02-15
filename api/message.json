@@ -1,0 +1,20 @@
+[
+  {
+    "from": "111222",
+    "to": "333444",
+    "message": "Hey! Are you on the global net?",
+    "time": 1739652000000
+  },
+  {
+    "from": "333444",
+    "to": "111222",
+    "message": "Yeah, I just installed the applet on my Android.",
+    "time": 1739652060000
+  },
+  {
+    "from": "999888",
+    "to": "111222",
+    "message": "Don't forget to check the SQL logs later.",
+    "time": 1739652120000
+  }
+]
