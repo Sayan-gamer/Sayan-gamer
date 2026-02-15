@@ -3,118 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>6-Digit HTTP Messenger</title>
+    <title>Global Blob Messenger</title>
     <style>
-        :root { --primary: #25d366; --bg: #0b141a; --card: #202c33; --text: #e9edef; }
-        body { font-family: sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        :root { --primary: #00a884; --bg: #0b141a; --card: #202c33; --text: #e9edef; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; height: 100vh; }
         
-        /* Setup Screen */
-        #setup-box { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 10; }
-        .card { background: var(--card); padding: 30px; border-radius: 12px; text-align: center; width: 80%; max-width: 300px; }
+        /* ID Display Header */
+        .id-header { background: var(--card); padding: 15px; border-bottom: 1px solid #333; text-align: center; display: none; }
+        .id-badge { background: #2a3942; padding: 5px 15px; border-radius: 20px; color: var(--primary); font-family: monospace; font-size: 1.2em; border: 1px solid var(--primary); }
 
-        /* Main App */
-        header { background: var(--card); padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
-        #chat-window { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; }
+        /* Setup/Login Area */
+        #login { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; padding: 20px; }
+        .login-card { background: var(--card); padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); text-align: center; }
+
+        /* Chat Area */
+        #app { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+        #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
         
-        /* Message Bubbles */
-        .bubble { padding: 8px 12px; border-radius: 8px; max-width: 75%; font-size: 0.95em; position: relative; }
-        .sent { background: #005c4b; align-self: flex-end; border-bottom-right-radius: 0; }
-        .received { background: var(--card); align-self: flex-start; border-bottom-left-radius: 0; }
-        .meta { font-size: 0.7em; opacity: 0.5; display: block; margin-bottom: 4px; }
+        /* Bubbles */
+        .msg { padding: 10px 14px; border-radius: 8px; max-width: 80%; word-wrap: break-word; font-size: 0.95em; }
+        .sent { background: #005c4b; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .received { background: #202c33; align-self: flex-start; border-bottom-left-radius: 2px; }
+        .sender-tag { font-size: 0.7em; opacity: 0.6; display: block; margin-bottom: 4px; }
 
-        /* Input Area */
-        .input-bar { background: var(--card); padding: 10px; display: flex; flex-direction: column; gap: 8px; }
-        .row { display: flex; gap: 5px; }
-        input { background: #2a3942; border: none; color: white; padding: 12px; border-radius: 8px; flex: 1; outline: none; }
-        button { background: var(--primary); color: #0b141a; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        /* Controls */
+        .input-panel { background: var(--card); padding: 15px; display: flex; flex-direction: column; gap: 8px; }
+        input { background: #2a3942; border: 1px solid #333; color: white; padding: 12px; border-radius: 8px; outline: none; }
+        .btn-group { display: flex; gap: 5px; }
+        button { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-main { background: var(--primary); color: #0b141a; }
+        .btn-sec { background: #333; color: white; }
+        button:active { opacity: 0.7; }
     </style>
 </head>
 <body>
 
-    <div id="setup-box">
-        <div class="card">
-            <h2>Messenger</h2>
-            <input type="number" id="myIdInput" placeholder="Enter Your 6-Digits" maxlength="6">
-            <button onclick="login()" style="width: 100%; margin-top: 10px;">Login</button>
+    <div class="id-header" id="header">
+        MY ID: <span class="id-badge" id="display-id">000000</span>
+    </div>
+
+    <div id="login">
+        <div class="login-card">
+            <h2>Vercel Applet</h2>
+            <p style="opacity: 0.7">Enter 6-digit identification</p>
+            <input type="number" id="myId" placeholder="123456" style="width: 100%; text-align: center;">
+            <button class="btn-main" onclick="init()" style="width: 100%; margin-top: 10px;">LOGIN</button>
         </div>
     </div>
 
-    <header>
-        <span>Online</span>
-        <span>ID: <strong id="displayId">000000</strong></span>
-    </header>
-
-    <div id="chat-window"></div>
-
-    <div class="input-bar">
-        <div class="row">
-            <input type="number" id="toId" placeholder="Friend's 6-Digit ID">
-        </div>
-        <div class="row">
-            <input type="text" id="msgContent" placeholder="Type a message...">
-            <button onclick="send()">SEND</button>
+    <div id="app">
+        <div id="chat"></div>
+        
+        <div class="input-panel">
+            <input type="number" id="toId" placeholder="Friend's ID">
+            <input type="text" id="msgText" placeholder="Type a message...">
+            <div class="btn-group">
+                <button class="btn-main" onclick="send()">SEND</button>
+                <button class="btn-sec" onclick="fetchMessages()">REFRESH</button>
+            </div>
         </div>
     </div>
 
     <script>
         let myId = "";
 
-        // 1. Enter the App
-        function login() {
-            const val = document.getElementById('myIdInput').value;
-            if (val.length !== 6) return alert("Must be 6 digits!");
-            myId = val;
-            document.getElementById('displayId').innerText = myId;
-            document.getElementById('setup-box').style.display = 'none';
+        async function init() {
+            const inputId = document.getElementById('myId').value;
+            if (inputId.length !== 6) return alert("Please enter exactly 6 digits.");
             
-            // Start Polling (Checking for new mail every 2 seconds)
-            setInterval(pollMessages, 2000);
+            myId = inputId;
+            document.getElementById('login').style.display = 'none';
+            document.getElementById('app').style.display = 'flex';
+            document.getElementById('header').style.display = 'block';
+            document.getElementById('display-id').innerText = myId;
+            
+            fetchMessages();
         }
 
-        // 2. POST Message to Server
         async function send() {
             const to = document.getElementById('toId').value;
-            const text = document.getElementById('msgContent').value;
-
-            if (!to || !text) return;
+            const message = document.getElementById('msgText').value;
+            if (!to || !message) return;
 
             try {
-                const response = await fetch('/send', {
+                await fetch('/api/message', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ to: to, from: myId, message: text })
+                    body: JSON.stringify({ from: myId, to, message })
                 });
-
-                if (response.ok) {
-                    addBubble("You", text, 'sent');
-                    document.getElementById('msgContent').value = "";
-                }
+                document.getElementById('msgText').value = "";
+                fetchMessages();
             } catch (e) {
-                console.error("Server connection failed.");
+                alert("Failed to send message.");
             }
         }
 
-        // 3. GET Messages from Server
-        async function pollMessages() {
+        async function fetchMessages() {
+            const chat = document.getElementById('chat');
             try {
-                const response = await fetch(`/messages/${myId}`);
-                const messages = await response.json();
+                const res = await fetch(`/api/message?id=${myId}`);
+                const data = await res.json();
                 
-                messages.forEach(m => {
-                    addBubble(m.from, m.message, 'received');
+                chat.innerHTML = "";
+                data.forEach(m => {
+                    const type = m.from === myId ? 'sent' : 'received';
+                    const div = document.createElement('div');
+                    div.className = `msg ${type}`;
+                    div.innerHTML = `<span class="sender-tag">${m.from}</span>${m.message}`;
+                    chat.appendChild(div);
                 });
+                chat.scrollTop = chat.scrollHeight;
             } catch (e) {
-                // Silently ignore polling errors to keep UI clean
+                chat.innerHTML = "<div style='text-align:center; opacity:0.5'>Error loading messages.</div>";
             }
-        }
-
-        function addBubble(sender, text, type) {
-            const win = document.getElementById('chat-window');
-            const div = document.createElement('div');
-            div.className = `bubble ${type}`;
-            div.innerHTML = `<span class="meta">${sender}</span>${text}`;
-            win.appendChild(div);
-            win.scrollTop = win.scrollHeight;
         }
     </script>
 </body>
